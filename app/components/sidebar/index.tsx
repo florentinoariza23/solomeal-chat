@@ -3,6 +3,7 @@ import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ChatBubbleOvalLeftEllipsisIcon,
+  HomeIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/outline'
 import { ChatBubbleOvalLeftEllipsisIcon as ChatBubbleOvalLeftEllipsisSolidIcon } from '@heroicons/react/24/solid'
@@ -20,6 +21,7 @@ export interface ISidebarProps {
   copyRight: string
   currentId: string
   onCurrentIdChange: (id: string) => void
+  onGoHome: () => void
   list: ConversationItem[]
 }
 
@@ -27,6 +29,7 @@ const Sidebar: FC<ISidebarProps> = ({
   copyRight,
   currentId,
   onCurrentIdChange,
+  onGoHome,
   list,
 }) => {
   const { t } = useTranslation()
@@ -35,12 +38,18 @@ const Sidebar: FC<ISidebarProps> = ({
       className="shrink-0 flex flex-col overflow-y-auto bg-card pc:w-[244px] tablet:w-[192px] mobile:w-[240px] border-r border-cream-2 tablet:h-[calc(100vh_-_3rem)] mobile:h-screen"
     >
       {list.length < MAX_CONVERSATION_LENTH && (
-        <div className="flex flex-shrink-0 p-4 !pb-0">
+        <div className="grid flex-shrink-0 grid-cols-2 gap-2 p-4 !pb-0">
           <Button
             onClick={() => { onCurrentIdChange('-1') }}
             className="group block w-full flex-shrink-0 !justify-start !h-9 text-primary-600 items-center text-sm"
           >
             <PencilSquareIcon className="mr-2 h-4 w-4" /> {t('app.chat.newChat')}
+          </Button>
+          <Button
+            onClick={onGoHome}
+            className="group block w-full flex-shrink-0 !justify-start !h-9 text-primary-600 items-center text-sm"
+          >
+            <HomeIcon className="mr-2 h-4 w-4" /> 主页
           </Button>
         </div>
       )}

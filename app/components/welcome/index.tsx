@@ -15,15 +15,15 @@ import { DEFAULT_VALUE_MAX_LEN } from '@/config'
 const regex = /\{\{([^}]+)\}\}/g
 
 const QUICK_CARDS = [
-  { tag: '🧺 记冰箱', title: '录入食材', desc: '刚买了什么？说一声就入库', prompt: '我刚买了3个番茄、5个鸡蛋和1瓶牛奶，帮我录入库存', img: '/images/tomato-egg.png' },
-  { tag: '🍳 推菜谱', title: '今天吃什么', desc: '按现有食材推荐今天能做的菜', prompt: '根据我现有的食材，推荐几道今天能做的菜', img: '/images/teriyaki-rice.png' },
-  { tag: '⏰ 清临期', title: '临期先吃掉', desc: '快过期的食材，优先安排掉', prompt: '有什么快过期的食材？', img: '/images/garlic-broccoli.png' },
-  { tag: '🛒 列清单', title: '还缺什么', desc: '想做的菜，一键列出购物清单', prompt: '我想吃番茄炒蛋，还需要购买什么？', img: '/images/tomato-pasta.png' },
-  { tag: '💚 懂口味', title: '饮食档案', desc: '记住你的偏好、忌口和过敏', prompt: '帮我设置个人饮食档案', img: '/images/avocado-sandwich.png' },
-  { tag: '📖 私房菜', title: '我的菜谱', desc: '记下拿手菜，推荐时优先考虑', prompt: '帮我记一道菜谱', img: '/images/chicken-breast.png' },
+  { tag: '🧺 记冰箱', title: '录入食材', desc: '刚买了什么？说一声就入库', img: '/images/tomato-egg.png' },
+  { tag: '🍳 推菜谱', title: '今天吃什么', desc: '按现有食材推荐今天能做的菜', img: '/images/teriyaki-rice.png' },
+  { tag: '⏰ 清临期', title: '临期先吃掉', desc: '快过期的食材，优先安排掉', img: '/images/garlic-broccoli.png' },
+  { tag: '🛒 列清单', title: '还缺什么', desc: '想做的菜，一键列出购物清单', img: '/images/tomato-pasta.png' },
+  { tag: '💚 懂口味', title: '饮食档案', desc: '记住你的偏好、忌口和过敏', img: '/images/avocado-sandwich.png' },
+  { tag: '📖 私房菜', title: '我的菜谱', desc: '记下拿手菜，推荐时优先考虑', img: '/images/chicken-breast.png' },
 ]
 
-const BrandHero: FC<{ onStartChat: () => void, onQuickSend?: (q: string) => void }> = ({ onStartChat, onQuickSend }) => {
+const BrandHero: FC<{ onStartChat: () => void }> = ({ onStartChat }) => {
   return (
     <div className='relative overflow-hidden'>
       <div className='pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-mint/50 blur-3xl'></div>
@@ -45,24 +45,25 @@ const BrandHero: FC<{ onStartChat: () => void, onQuickSend?: (q: string) => void
           </p>
         </div>
 
-        <div className='mt-8 grid grid-cols-2 gap-3 tablet:gap-3.5 pc:grid-cols-3'>
+        <div className='mt-9 mb-3 flex items-center gap-3 text-xs font-semibold tracking-widest text-stone'>
+          <span className='h-px flex-1 bg-sage/40'></span>
+          功能一览 · 聊天时直接对它说就行
+          <span className='h-px flex-1 bg-sage/40'></span>
+        </div>
+        <div className='grid grid-cols-2 gap-3 tablet:gap-3.5 pc:grid-cols-3'>
           {QUICK_CARDS.map((card, i) => (
             <div
               key={card.title}
-              className='sm-rise group cursor-pointer overflow-hidden rounded-2xl border border-ink/5 bg-card shadow-soft transition-all duration-200 hover:-translate-y-1 hover:border-sage/60 hover:shadow-lift'
+              className='sm-rise group overflow-hidden rounded-2xl border border-ink/5 bg-card shadow-soft'
               style={{ animationDelay: `${120 + i * 70}ms` }}
-              onClick={() => onQuickSend ? onQuickSend(card.prompt) : onStartChat()}
             >
               <div className='relative h-28 overflow-hidden'>
-                <img src={card.img} alt={card.title} className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105' />
+                <img src={card.img} alt={card.title} className='h-full w-full object-cover' />
                 <div className='absolute inset-0 bg-gradient-to-t from-ink/25 to-transparent'></div>
                 <div className='absolute bottom-2 left-3 rounded-full bg-card/90 px-2.5 py-0.5 text-[11px] font-semibold text-forest-deep'>{card.tag}</div>
               </div>
               <div className='p-3.5'>
-                <div className='flex items-center justify-between'>
-                  <div className='font-display text-base font-bold text-ink'>{card.title}</div>
-                  <span className='text-sage transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-tomato'>→</span>
-                </div>
+                <div className='font-display text-base font-bold text-ink'>{card.title}</div>
                 <div className='mt-1 text-xs leading-5 text-stone'>{card.desc}</div>
               </div>
             </div>
@@ -84,7 +85,7 @@ const BrandHero: FC<{ onStartChat: () => void, onQuickSend?: (q: string) => void
             </svg>
             开始聊天
           </div>
-          <div className='text-xs text-stone'>或点上方卡片快速提问 · 数据按用户隔离，别人看不到你的冰箱</div>
+          <div className='text-xs text-stone'>直接打字或上传冰箱照片开始 · 数据按用户隔离，别人看不到你的冰箱</div>
         </div>
 
         <div className='mt-8 flex items-center justify-center gap-1.5 text-xs text-stone/80'>
@@ -107,7 +108,6 @@ export interface IWelcomeProps {
   canEditInputs: boolean
   savedInputs: Record<string, any>
   onInputsChange: (inputs: Record<string, any>) => void
-  onQuickSend?: (q: string) => void
 }
 
 const Welcome: FC<IWelcomeProps> = ({
@@ -120,7 +120,6 @@ const Welcome: FC<IWelcomeProps> = ({
   canEditInputs,
   savedInputs,
   onInputsChange,
-  onQuickSend,
 }) => {
   const { t } = useTranslation()
   const hasVar = promptConfig.prompt_variables.length > 0
@@ -436,7 +435,7 @@ const Welcome: FC<IWelcomeProps> = ({
   }
 
   if (!hasSetInputs && !hasVar) {
-    return <BrandHero onStartChat={handleChat} onQuickSend={onQuickSend} />
+    return <BrandHero onStartChat={handleChat} />
   }
 
   return (

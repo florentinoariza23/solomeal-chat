@@ -171,6 +171,25 @@ const Main: FC<IMainProps> = () => {
     hideSidebar()
   }
 
+  const handleNewChat = () => {
+    if (isResponding) {
+      notify({ type: 'warning', message: '回复生成中，等它说完再开新对话' })
+      return
+    }
+    handleConversationIdChange('-1')
+    setChatStarted()
+    setChatList(generateNewChatListWithOpenStatement())
+  }
+
+  const handleGoHome = () => {
+    if (isResponding) {
+      notify({ type: 'warning', message: '回复生成中，等它说完再回主页' })
+      return
+    }
+    handleConversationIdChange('-1')
+    setChatNotStarted()
+  }
+
   /*
   * chat info. chat is under conversation.
   */
@@ -638,11 +657,6 @@ const Main: FC<IMainProps> = () => {
     })
   }
 
-  const handleQuickSend = (message: string) => {
-    handleStartChat({})
-    handleSend(message)
-  }
-
   const handleFeedback = async (messageId: string, feedback: Feedbacktype) => {
     await updateFeedback({ url: `/messages/${messageId}/feedbacks`, body: { rating: feedback.rating } })
     const newChatList = chatList.map((item) => {
@@ -663,7 +677,8 @@ const Main: FC<IMainProps> = () => {
     return (
       <Sidebar
         list={conversationList}
-        onCurrentIdChange={handleConversationIdChange}
+        onCurrentIdChange={id => id === '-1' ? handleNewChat() : handleConversationIdChange(id)}
+        onGoHome={handleGoHome}
         currentId={currConversationId}
         copyRight={APP_INFO.copyright || APP_INFO.title}
       />
@@ -680,7 +695,8 @@ const Main: FC<IMainProps> = () => {
         title={APP_INFO.title}
         isMobile={isMobile}
         onShowSideBar={showSidebar}
-        onCreateNewChat={() => handleConversationIdChange('-1')}
+        onCreateNewChat={handleNewChat}
+        onGoHome={handleGoHome}
       />
       <div className="flex rounded-t-2xl overflow-hidden">
         {/* sidebar */}
@@ -704,7 +720,6 @@ const Main: FC<IMainProps> = () => {
             canEditInputs={canEditInputs}
             savedInputs={currInputs as Record<string, any>}
             onInputsChange={setCurrInputs}
-            onQuickSend={handleQuickSend}
           ></ConfigSence>
 
           {
