@@ -24,7 +24,17 @@ export const getLocaleOnServer = async (): Promise<Locale> => {
     languages = new Negotiator({ headers: negotiatorHeaders }).languages()
   }
 
+  // Accept-Language may be "*" or malformed (health checks, proxies); Intl throws on those
+  const canonicalLanguages = languages.flatMap((lang) => {
+    try {
+      return Intl.getCanonicalLocales(lang)
+    }
+    catch {
+      return []
+    }
+  })
+
   // match locale
-  const matchedLocale = match(languages, locales, i18n.defaultLocale) as Locale
+  const matchedLocale = match(canonicalLanguages, locales, i18n.defaultLocale) as Locale
   return matchedLocale
 }
