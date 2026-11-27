@@ -35,7 +35,7 @@ const Sidebar: FC<ISidebarProps> = ({
   const { t } = useTranslation()
   return (
     <div
-      className="shrink-0 flex flex-col overflow-y-auto bg-card pc:w-[244px] tablet:w-[192px] mobile:w-[240px] border-r border-cream-2 tablet:h-[calc(100vh_-_3rem)] mobile:h-screen"
+      className="shrink-0 flex flex-col overflow-y-auto bg-card pc:w-[244px] tablet:w-[192px] mobile:w-[240px] border-r border-cream-2 tablet:h-app-main mobile:h-app"
     >
       {list.length < MAX_CONVERSATION_LENTH && (
         <div className="grid flex-shrink-0 grid-cols-2 gap-2 p-4 !pb-0">

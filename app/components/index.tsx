@@ -74,7 +74,6 @@ const Main: FC<IMainProps> = () => {
     currConversationId,
     getCurrConversationId,
     setCurrConversationId,
-    getConversationIdFromStorage,
     isNewConversation,
     currConversationInfo,
     currInputs,
@@ -167,7 +166,7 @@ const Main: FC<IMainProps> = () => {
       setConversationIdChangeBecauseOfNew(false)
     }
     // trigger handleConversationSwitch
-    setCurrConversationId(id, APP_ID)
+    setCurrConversationId(id)
     hideSidebar()
   }
 
@@ -258,9 +257,6 @@ const Main: FC<IMainProps> = () => {
           throw new Error(error)
           return
         }
-        const _conversationId = getConversationIdFromStorage(APP_ID)
-        const currentConversation = conversations.find(item => item.id === _conversationId)
-        const isNotNewConversation = !!currentConversation
 
         // fetch new conversation info
         const { user_input_form, opening_statement: introduction, file_upload, system_parameters, suggested_questions = [] }: any = appParams
@@ -270,13 +266,6 @@ const Main: FC<IMainProps> = () => {
           introduction,
           suggested_questions,
         })
-        if (isNotNewConversation) {
-          setExistConversationInfo({
-            name: currentConversation.name || t('app.chat.newChatDefaultName'),
-            introduction,
-            suggested_questions,
-          })
-        }
         const prompt_variables = userInputsFormToPromptVariables(user_input_form)
         setPromptConfig({
           prompt_template: promptTemplate,
@@ -297,8 +286,6 @@ const Main: FC<IMainProps> = () => {
           fileUploadConfig: file_upload?.fileUploadConfig,
         })
         setConversationList(conversations as ConversationItem[])
-
-        if (isNotNewConversation) { setCurrConversationId(_conversationId, APP_ID, false) }
 
         setInited(true)
       }
@@ -506,7 +493,7 @@ const Main: FC<IMainProps> = () => {
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
         setChatNotStarted()
-        setCurrConversationId(tempNewConversationId, APP_ID, true)
+        setCurrConversationId(tempNewConversationId)
         setRespondingFalse()
       },
       onFile(file) {
@@ -709,7 +696,7 @@ const Main: FC<IMainProps> = () => {
           </div>
         )}
         {/* main */}
-        <div className='flex-grow flex flex-col h-[calc(100vh_-_3rem)] overflow-y-auto'>
+        <div className='flex-grow flex flex-col h-app-main overflow-y-auto'>
           <ConfigSence
             conversationName={conversationName}
             hasSetInputs={hasSetInputs}

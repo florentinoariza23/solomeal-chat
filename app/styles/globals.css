@@ -206,3 +206,31 @@ html {
 .sm-rise {
   animation: sm-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ── 移动端适配 ─────────────────────────── */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* dvh 跟随手机浏览器工具栏收放，旧浏览器回退 vh */
+.h-app {
+  height: 100vh;
+  height: 100dvh;
+}
+.h-app-main {
+  height: calc(100vh - 3rem);
+  height: calc(100dvh - 3rem);
+}
+
+/* iOS 聚焦小于 16px 的输入框会强制缩放页面 */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
