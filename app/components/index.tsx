@@ -27,6 +27,9 @@ export interface IMainProps {
   params: any
 }
 
+const MODEL_ERROR_NOTE = '⚠️ 这条回复没有生成成功：后端模型服务调用出错（常见原因是模型供应商的 API Key 失效或额度用完）。请到 Dify 控制台检查模型供应商配置，然后重新提问。'
+const EMPTY_STREAM_NOTE = '⚠️ 这次没有收到回复内容：连接中断或后端未返回数据。请重新发送试试。'
+
 const Main: FC<IMainProps> = () => {
   const { t } = useTranslation()
   const media = useBreakpoints()
@@ -51,8 +54,8 @@ const Main: FC<IMainProps> = () => {
   const [fileConfig, setFileConfig] = useState<FileUpload | undefined>()
 
   useEffect(() => {
-    if (APP_INFO?.title) { document.title = `${APP_INFO.title} - Powered by Dify` }
-  }, [APP_INFO?.title])
+    document.title = 'SoloMeal · AI 一人食管家'
+  }, [])
 
   // onData change thought (the produce obj). https://github.com/immerjs/immer/issues/576
   useEffect(() => {
@@ -125,7 +128,7 @@ const Main: FC<IMainProps> = () => {
     }
 
     // update chat list of current conversation
-    if (!isNewConversation && !conversationIdChangeBecauseOfNew && !isResponding) {
+    if (!isNewConversation && currConversationId && !conversationIdChangeBecauseOfNew && !isResponding) {
       fetchChatList(currConversationId).then((res: any) => {
         const { data } = res
         const newChatList: ChatItem[] = generateNewChatListWithOpenStatement(notSyncToStateIntroduction, notSyncToStateInputs)
@@ -140,7 +143,7 @@ const Main: FC<IMainProps> = () => {
           })
           newChatList.push({
             id: item.id,
-            content: item.answer,
+            content: item.answer || (item.status === 'error' ? MODEL_ERROR_NOTE : EMPTY_STREAM_NOTE),
             agent_thoughts: addFileInfos(item.agent_thoughts ? sortAgentSorts(item.agent_thoughts) : item.agent_thoughts, item.message_files),
             feedback: item.feedback,
             isAnswer: true,
@@ -307,7 +310,7 @@ const Main: FC<IMainProps> = () => {
     let emptyRequiredInput = false
     promptConfig.prompt_variables.forEach((item) => {
       if (item.required && !currInputs[item.key])
-        emptyRequiredInput = true
+      { emptyRequiredInput = true }
     })
 
     if (emptyRequiredInput) {
@@ -444,6 +447,7 @@ const Main: FC<IMainProps> = () => {
         }
 
         if (isFirstMessage && newConversationId) { tempNewConversationId = newConversationId }
+        if (!tempNewConversationId && newConversationId && prevTempNewConversationId === '-1') { tempNewConversationId = newConversationId }
 
         setMessageTaskId(taskId)
         // has switched to other conversation
@@ -459,7 +463,16 @@ const Main: FC<IMainProps> = () => {
         })
       },
       async onCompleted(hasError?: boolean) {
-        if (hasError) { return }
+        if (hasError) {
+          if (!responseItem.content) { responseItem.content = EMPTY_STREAM_NOTE }
+          updateCurrentQA({ responseItem, questionId, placeholderAnswerId, questionItem })
+          setRespondingFalse()
+          return
+        }
+        if (!responseItem.content && !responseItem.agent_thoughts?.length) {
+          responseItem.content = EMPTY_STREAM_NOTE
+          updateCurrentQA({ responseItem, questionId, placeholderAnswerId, questionItem })
+        }
 
         if (getConversationIdChangeBecauseOfNew()) {
           const { data: allConversations }: any = await fetchConversations()
@@ -469,6 +482,7 @@ const Main: FC<IMainProps> = () => {
             draft[0].name = newItem.name
           })
           setConversationList(newAllConversations as any)
+          if (!tempNewConversationId) { tempNewConversationId = allConversations[0]?.id || '' }
         }
         setConversationIdChangeBecauseOfNew(false)
         resetNewConversationInputs()
@@ -589,6 +603,9 @@ const Main: FC<IMainProps> = () => {
       },
       onWorkflowFinished: ({ data }) => {
         responseItem.workflowProcess!.status = data.status as WorkflowRunningStatus
+        if ((data.status === WorkflowRunningStatus.Failed || data.status === WorkflowRunningStatus.Stopped)) {
+          responseItem.content = responseItem.content ? `${responseItem.content}\n\n${MODEL_ERROR_NOTE}` : MODEL_ERROR_NOTE
+        }
         setChatList(produce(getChatList(), (draft) => {
           const currentIndex = draft.findIndex(item => item.id === responseItem.id)
           draft[currentIndex] = {
@@ -619,6 +636,11 @@ const Main: FC<IMainProps> = () => {
         }))
       },
     })
+  }
+
+  const handleQuickSend = (message: string) => {
+    handleStartChat({})
+    handleSend(message)
   }
 
   const handleFeedback = async (messageId: string, feedback: Feedbacktype) => {
@@ -653,18 +675,18 @@ const Main: FC<IMainProps> = () => {
   if (!APP_ID || !APP_INFO || !promptConfig) { return <Loading type='app' /> }
 
   return (
-    <div className='bg-gray-100'>
+    <div className='bg-cream bg-doodles'>
       <Header
         title={APP_INFO.title}
         isMobile={isMobile}
         onShowSideBar={showSidebar}
         onCreateNewChat={() => handleConversationIdChange('-1')}
       />
-      <div className="flex rounded-t-2xl bg-white overflow-hidden">
+      <div className="flex rounded-t-2xl overflow-hidden">
         {/* sidebar */}
         {!isMobile && renderSidebar()}
         {isMobile && isShowSidebar && (
-          <div className='fixed inset-0 z-50' style={{ backgroundColor: 'rgba(35, 56, 118, 0.2)' }} onClick={hideSidebar} >
+          <div className='fixed inset-0 z-50' style={{ backgroundColor: 'rgba(52, 59, 50, 0.35)' }} onClick={hideSidebar} >
             <div className='inline-block' onClick={e => e.stopPropagation()}>
               {renderSidebar()}
             </div>
@@ -682,6 +704,7 @@ const Main: FC<IMainProps> = () => {
             canEditInputs={canEditInputs}
             savedInputs={currInputs as Record<string, any>}
             onInputsChange={setCurrInputs}
+            onQuickSend={handleQuickSend}
           ></ConfigSence>
 
           {

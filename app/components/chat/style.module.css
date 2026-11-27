@@ -1,6 +1,7 @@
 .answerIcon {
   position: relative;
-  background: url(./icons/robot.svg);
+  background: url(./icons/robot.svg) center / contain no-repeat;
+  border-radius: 12px;
 }
 
 .typeingIcon {
@@ -19,7 +20,7 @@
 
 
 .questionIcon {
-  background: url(./icons/default-avatar.jpg);
+  background: url(./icons/user-avatar.svg);
   background-size: contain;
   border-radius: 50%;
 }
@@ -57,29 +58,26 @@
   padding-right: 90px;
   border-radius: 12px;
   line-height: 20px;
-  background-color: #fff;
+  background-color: #fffdf8;
 }
 
 .textArea:hover {
-  background-color: #fff;
+  background-color: #fffdf8;
 }
 
-/* .textArea:focus {
-  box-shadow: 0px 3px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px rgba(0, 0, 0, 0.05);
-} */
-
 .count {
-  /* display: none; */
   padding: 0 2px;
 }
 
 .sendBtn {
   background: url(./icons/send.svg) center center no-repeat;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
 }
 
 .sendBtn:hover {
   background-image: url(./icons/send-active.svg);
-  background-color: #EBF5FF;
+  background-color: #526B50;
 }
 
 .textArea:focus+div .count {
@@ -87,5 +85,10 @@
 }
 
 .textArea:focus+div .sendBtn {
+  background-color: #EDF2E8;
+}
+
+.textArea:focus+div .sendBtn:hover {
   background-image: url(./icons/send-active.svg);
+  background-color: #526B50;
 }

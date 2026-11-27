@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import TemplateVarPanel, { PanelTitle, VarOpBtnGroup } from '../value-panel'
 import FileUploaderInAttachmentWrapper from '../base/file-uploader-in-attachment'
 import s from './style.module.css'
-import { AppInfoComp, ChatBtn, EditBtn, FootLogo, PromptTemplate } from './massive-component'
+import { AppInfoComp, ChatBtn, EditBtn, PromptTemplate } from './massive-component'
 import type { AppInfo, PromptConfig } from '@/types/app'
 import Toast from '@/app/components/base/toast'
 import Select from '@/app/components/base/select'
@@ -13,6 +13,89 @@ import { DEFAULT_VALUE_MAX_LEN } from '@/config'
 
 // regex to match the {{}} and replace it with a span
 const regex = /\{\{([^}]+)\}\}/g
+
+const QUICK_CARDS = [
+  { tag: '🧺 记冰箱', title: '录入食材', desc: '刚买了什么？说一声就入库', prompt: '我刚买了3个番茄、5个鸡蛋和1瓶牛奶，帮我录入库存', img: '/images/tomato-egg.png' },
+  { tag: '🍳 推菜谱', title: '今天吃什么', desc: '按现有食材推荐今天能做的菜', prompt: '根据我现有的食材，推荐几道今天能做的菜', img: '/images/teriyaki-rice.png' },
+  { tag: '⏰ 清临期', title: '临期先吃掉', desc: '快过期的食材，优先安排掉', prompt: '有什么快过期的食材？', img: '/images/garlic-broccoli.png' },
+  { tag: '🛒 列清单', title: '还缺什么', desc: '想做的菜，一键列出购物清单', prompt: '我想吃番茄炒蛋，还需要购买什么？', img: '/images/tomato-pasta.png' },
+  { tag: '💚 懂口味', title: '饮食档案', desc: '记住你的偏好、忌口和过敏', prompt: '帮我设置个人饮食档案', img: '/images/avocado-sandwich.png' },
+  { tag: '📖 私房菜', title: '我的菜谱', desc: '记下拿手菜，推荐时优先考虑', prompt: '帮我记一道菜谱', img: '/images/chicken-breast.png' },
+]
+
+const BrandHero: FC<{ onStartChat: () => void, onQuickSend?: (q: string) => void }> = ({ onStartChat, onQuickSend }) => {
+  return (
+    <div className='relative overflow-hidden'>
+      <div className='pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-mint/50 blur-3xl'></div>
+      <div className='pointer-events-none absolute top-40 -right-28 h-80 w-80 rounded-full bg-oat-soft/70 blur-3xl'></div>
+      <div className='relative mx-auto max-w-[880px] px-4 pt-10 pb-8 tablet:pt-14'>
+        <div className='sm-rise flex flex-col items-center text-center'>
+          <div className='mb-3 rounded-full border border-sage/50 bg-mint-soft px-3.5 py-1 text-xs font-semibold tracking-wide text-forest-deep'>
+            AI 一人食管家
+          </div>
+          <div className='flex items-center gap-3'>
+            <img src='/logo.svg' alt='SoloMeal' className='h-14 w-14 tablet:h-16 tablet:w-16' />
+            <div className='font-display text-4xl tablet:text-5xl font-extrabold tracking-tight'>
+              <span className='text-forest'>Solo</span><span className='text-tomato'>Meal</span>
+            </div>
+          </div>
+          <p className='mt-3 text-base tablet:text-lg font-medium text-ink'>一个人吃饭，也要好好吃。</p>
+          <p className='mt-1.5 max-w-[520px] text-sm leading-6 text-stone'>
+            告诉它你买了什么，它帮你记冰箱；说想吃什么，它推菜谱、列清单，还优先帮你吃掉快过期的食材。
+          </p>
+        </div>
+
+        <div className='mt-8 grid grid-cols-2 gap-3 tablet:gap-3.5 pc:grid-cols-3'>
+          {QUICK_CARDS.map((card, i) => (
+            <div
+              key={card.title}
+              className='sm-rise group cursor-pointer overflow-hidden rounded-2xl border border-ink/5 bg-card shadow-soft transition-all duration-200 hover:-translate-y-1 hover:border-sage/60 hover:shadow-lift'
+              style={{ animationDelay: `${120 + i * 70}ms` }}
+              onClick={() => onQuickSend ? onQuickSend(card.prompt) : onStartChat()}
+            >
+              <div className='relative h-28 overflow-hidden'>
+                <img src={card.img} alt={card.title} className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105' />
+                <div className='absolute inset-0 bg-gradient-to-t from-ink/25 to-transparent'></div>
+                <div className='absolute bottom-2 left-3 rounded-full bg-card/90 px-2.5 py-0.5 text-[11px] font-semibold text-forest-deep'>{card.tag}</div>
+              </div>
+              <div className='p-3.5'>
+                <div className='flex items-center justify-between'>
+                  <div className='font-display text-base font-bold text-ink'>{card.title}</div>
+                  <span className='text-sage transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-tomato'>→</span>
+                </div>
+                <div className='mt-1 text-xs leading-5 text-stone'>{card.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className='sm-rise mt-5 flex items-center gap-2.5 rounded-xl border border-oat/40 bg-oat-soft px-4 py-3 text-sm text-ink' style={{ animationDelay: '560ms' }}>
+          <span className='text-lg'>📷</span>
+          <span>也可以直接<b>上传冰箱照片</b>，AI 识别出食材后，你说「确认」就入库。</span>
+        </div>
+
+        <div className='sm-rise mt-7 flex flex-col items-center gap-2.5' style={{ animationDelay: '620ms' }}>
+          <div
+            className='flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-forest px-7 text-base font-semibold text-white shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:bg-forest-deep hover:shadow-lift'
+            onClick={onStartChat}
+          >
+            <svg width="18" height="19" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" clipRule="evenodd" d="M18 10.5C18 14.366 14.418 17.5 10 17.5C8.58005 17.506 7.17955 17.1698 5.917 16.52L2 17.5L3.338 14.377C2.493 13.267 2 11.934 2 10.5C2 6.634 5.582 3.5 10 3.5C14.418 3.5 18 6.634 18 10.5ZM7 9.5H5V11.5H7V9.5ZM15 9.5H13V11.5H15V9.5ZM9 9.5H11V11.5H9V9.5Z" fill="white" />
+            </svg>
+            开始聊天
+          </div>
+          <div className='text-xs text-stone'>或点上方卡片快速提问 · 数据按用户隔离，别人看不到你的冰箱</div>
+        </div>
+
+        <div className='mt-8 flex items-center justify-center gap-1.5 text-xs text-stone/80'>
+          <span>© SoloMeal {(new Date()).getFullYear()}</span>
+          <span>·</span>
+          <a className='hover:text-forest' href='https://dify.ai/' target='_blank' rel='noreferrer'>Powered by Dify</a>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export interface IWelcomeProps {
   conversationName: string
@@ -24,6 +107,7 @@ export interface IWelcomeProps {
   canEditInputs: boolean
   savedInputs: Record<string, any>
   onInputsChange: (inputs: Record<string, any>) => void
+  onQuickSend?: (q: string) => void
 }
 
 const Welcome: FC<IWelcomeProps> = ({
@@ -36,6 +120,7 @@ const Welcome: FC<IWelcomeProps> = ({
   canEditInputs,
   savedInputs,
   onInputsChange,
+  onQuickSend,
 }) => {
   const { t } = useTranslation()
   const hasVar = promptConfig.prompt_variables.length > 0
@@ -81,8 +166,8 @@ const Welcome: FC<IWelcomeProps> = ({
 
   const renderHeader = () => {
     return (
-      <div className='absolute top-0 left-0 right-0 flex items-center justify-between border-b border-gray-100 mobile:h-12 tablet:h-16 px-8 bg-white'>
-        <div className='text-gray-900'>{conversationName}</div>
+      <div className='absolute top-0 left-0 right-0 flex items-center justify-between border-b border-cream-2 mobile:h-12 tablet:h-16 px-8 bg-card/90 backdrop-blur'>
+        <div className='text-ink font-medium'>{conversationName}</div>
       </div>
     )
   }
@@ -172,33 +257,33 @@ const Welcome: FC<IWelcomeProps> = ({
   }
 
   const canChat = () => {
-    const vars = promptConfig?.prompt_variables ?? [];
+    const vars = promptConfig?.prompt_variables ?? []
 
-    const hasEmptyRequired = vars.some(v => {
-      const isRequired = v?.required ?? true;
-      if (!isRequired) return false;
+    const hasEmptyRequired = vars.some((v) => {
+      const isRequired = v?.required ?? true
+      if (!isRequired) { return false }
 
-      const val = inputs?.[v.key];
+      const val = inputs?.[v.key]
 
-      if (typeof val === 'string') return val.trim() === '';
+      if (typeof val === 'string') { return val.trim() === '' }
 
-      return val === undefined || val === null;
-    });
+      return val === undefined || val === null
+    })
 
     if (hasEmptyRequired) {
-      logError(t('app.errorMessage.valueOfVarRequired'));
-      return false;
+      logError(t('app.errorMessage.valueOfVarRequired'))
+      return false
     }
 
-    return true;
-  };
+    return true
+  }
 
   const handleChat = () => {
     if (!canChat()) { return }
 
     Object.keys(inputs).forEach((key) => {
       if (!inputs[key])
-        delete inputs[key]
+      { delete inputs[key] }
     })
 
     onStartChat(inputs)
@@ -350,6 +435,10 @@ const Welcome: FC<IWelcomeProps> = ({
       </div>)
   }
 
+  if (!hasSetInputs && !hasVar) {
+    return <BrandHero onStartChat={handleChat} onQuickSend={onQuickSend} />
+  }
+
   return (
     <div className='relative mobile:min-h-[48px] tablet:min-h-[64px]'>
       {hasSetInputs && renderHeader()}
@@ -389,7 +478,6 @@ const Welcome: FC<IWelcomeProps> = ({
               </div>}
             <a className='flex items-center pr-3 space-x-3' href="https://dify.ai/" target="_blank">
               <span className='uppercase'>{t('app.chat.powerBy')}</span>
-              <FootLogo />
             </a>
           </div>
         )}

@@ -82,13 +82,10 @@ body {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  /* background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb)); */
+  color: #343b32;
+  background-color: #f8f6ef;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -118,13 +115,94 @@ a {
 }
 
 .link {
-  @apply text-blue-600 cursor-pointer hover:opacity-80 transition-opacity duration-200 ease-in-out;
+  @apply text-forest cursor-pointer hover:opacity-80 transition-opacity duration-200 ease-in-out;
 }
 
 .text-gradient {
-  background: linear-gradient(91.58deg, #2250F2 -29.55%, #0EBCF3 75.22%);
+  background: linear-gradient(91.58deg, #526b50 -29.55%, #e58b68 75.22%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-fill-color: transparent;
+}
+
+/* ── SoloMeal 品牌基础 ─────────────────────────── */
+.bg-doodles {
+  background-image: url('/doodles.svg');
+  background-size: 360px 360px;
+  background-repeat: repeat;
+}
+
+::selection {
+  background: #dce8d6;
+  color: #3e5340;
+}
+
+html {
+  scrollbar-color: #a8b89a #f2f0e7;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: #f2f0e7;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #a8b89a;
+  border-radius: 8px;
+  border: 2px solid #f2f0e7;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #526b50;
+}
+
+/* 回答区 Markdown 品牌化 */
+.streamdown-markdown {
+  color: #343b32;
+  line-height: 1.75;
+}
+.streamdown-markdown a {
+  color: #526b50;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.streamdown-markdown blockquote {
+  border-left-color: #a8b89a;
+  color: #4a5142;
+}
+.streamdown-markdown :where(code):not(pre code) {
+  background: #edf2e8;
+  color: #3e5340;
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+.streamdown-markdown table th {
+  background: #edf2e8;
+}
+
+/* 用户气泡内文字反白 */
+.sm-question .streamdown-markdown,
+.sm-question .streamdown-markdown :where(p, li, span, strong, em, h1, h2, h3, h4) {
+  color: #fffdf8;
+}
+.sm-question .streamdown-markdown a {
+  color: #f7e8d7;
+}
+
+/* 欢迎页入场动画 */
+@keyframes sm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.sm-rise {
+  animation: sm-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

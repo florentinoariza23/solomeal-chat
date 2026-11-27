@@ -6,7 +6,6 @@ import type { Emoji } from '@/types/tools'
 import { HandThumbDownIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import Button from '@/app/components/base/button'
 import StreamdownMarkdown from '@/app/components/base/streamdown-markdown'
 import Tooltip from '@/app/components/base/tooltip'
 import WorkflowProcess from '@/app/components/workflow/workflow-process'
@@ -60,6 +59,64 @@ const IconWrapper: FC<{ children: React.ReactNode | string }> = ({ children }) =
     <div className="rounded-lg h-6 w-6 flex items-center justify-center hover:bg-gray-100">
       {children}
     </div>
+  )
+}
+
+interface ActionButton { message: string, label: string, primary: boolean }
+type ContentSegment = { kind: 'md', text: string } | { kind: 'actions', buttons: ActionButton[] }
+
+// Dify chatflow answers embed <button data-message="..."> follow-up actions; markdown renderers drop raw HTML, so surface them as chips
+function parseContentSegments(content: string): ContentSegment[] {
+  const re = /<button\b[^>]*?data-message="([^"]*)"[^>]*>([\s\S]*?)<\/button>/g
+  const segments: ContentSegment[] = []
+  let pending: ActionButton[] = []
+  let last = 0
+  const flush = () => {
+    if (pending.length) {
+      segments.push({ kind: 'actions', buttons: pending })
+      pending = []
+    }
+  }
+  let m = re.exec(content)
+  while (m) {
+    const before = content.slice(last, m.index)
+    if (before.trim()) {
+      flush()
+      segments.push({ kind: 'md', text: before })
+    }
+    pending.push({ message: m[1], label: m[2].trim(), primary: /data-variant="primary"/.test(m[0]) })
+    last = m.index + m[0].length
+    m = re.exec(content)
+  }
+  const tail = content.slice(last)
+  if (tail.trim()) {
+    flush()
+    segments.push({ kind: 'md', text: tail })
+  }
+  flush()
+  return segments
+}
+
+const AnswerBody: FC<{ content: string, onAction: (message: string) => void }> = ({ content, onAction }) => {
+  const segments = parseContentSegments(content)
+  return (
+    <>
+      {segments.map((seg, i) => seg.kind === 'md'
+        ? <StreamdownMarkdown key={i} content={seg.text} />
+        : (
+          <div key={i} className="flex gap-1.5 mt-2 flex-wrap">
+            {seg.buttons.map((b, j) => (
+              <div
+                key={j}
+                className={`rounded-full px-3 py-1.5 text-xs cursor-pointer transition-colors ${b.primary ? 'bg-forest text-cream hover:bg-forest-deep' : 'border border-sage/60 bg-mint-soft text-forest-deep hover:bg-mint hover:border-sage'}`}
+                onClick={() => onAction(b.message)}
+              >
+                {b.label}
+              </div>
+            ))}
+          </div>
+        ))}
+    </>
   )
 }
 
@@ -189,7 +246,7 @@ const Answer: FC<IAnswerProps> = ({
         </div>
         <div className={`${s.answerWrap} max-w-[calc(100%-3rem)]`}>
           <div className={`${s.answer} relative text-sm text-gray-900`}>
-            <div className={`ml-2 py-3 px-4 bg-gray-100 rounded-tr-2xl rounded-b-2xl ${workflowProcess && 'min-w-[480px]'}`}>
+            <div className={`ml-2 py-3 px-4 bg-card border border-ink/5 shadow-soft rounded-tr-2xl rounded-b-2xl ${workflowProcess && 'min-w-0 tablet:min-w-[480px]'}`}>
               {workflowProcess && (
                 <WorkflowProcess data={workflowProcess} hideInfo />
               )}
@@ -202,14 +259,18 @@ const Answer: FC<IAnswerProps> = ({
                 : (isAgentMode
                   ? agentModeAnswer
                   : (
-                    <StreamdownMarkdown content={content} />
+                    <AnswerBody content={content} onAction={suggestionClick} />
                   ))}
               {suggestedQuestions.length > 0 && (
                 <div className="mt-3">
-                  <div className="flex gap-1 mt-1 flex-wrap">
+                  <div className="flex gap-1.5 mt-1 flex-wrap">
                     {suggestedQuestions.map((suggestion, index) => (
-                      <div key={index} className="flex items-center gap-1">
-                        <Button className="text-sm" type="link" onClick={() => suggestionClick(suggestion)}>{suggestion}</Button>
+                      <div
+                        key={index}
+                        className="rounded-full border border-sage/60 bg-mint-soft px-3 py-1.5 text-xs text-forest-deep cursor-pointer transition-colors hover:bg-mint hover:border-sage"
+                        onClick={() => suggestionClick(suggestion)}
+                      >
+                        {suggestion}
                       </div>
                     ))}
                   </div>
