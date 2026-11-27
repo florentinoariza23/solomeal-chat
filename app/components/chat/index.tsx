@@ -69,15 +69,6 @@ const Chat: FC<IChatProps> = ({
     notify({ type: 'error', message, duration: 3000 })
   }
 
-  const valid = () => {
-    const query = queryRef.current
-    if (!query || query.trim() === '') {
-      logError(t('app.errorMessage.valueOfVarRequired'))
-      return false
-    }
-    return true
-  }
-
   useEffect(() => {
     if (controlClearQuery) {
       setQuery('')
@@ -96,11 +87,24 @@ const Chat: FC<IChatProps> = ({
 
   const [attachmentFiles, setAttachmentFiles] = React.useState<FileEntity[]>([])
 
+  const pendingUploads = files.some(file => file.progress !== -1 && file.progress < 100)
+    || attachmentFiles.some(file => file.progress !== -1 && file.progress < 100)
+  const readyAttachmentFiles = getProcessedFiles(attachmentFiles)
+  const hasReadyFiles = files.some(file => file.progress === 100) || readyAttachmentFiles.length > 0
+  const canSend = !isResponding && !pendingUploads && (query.trim() !== '' || hasReadyFiles)
+
+  const valid = () => {
+    const query = queryRef.current
+    if ((!query || query.trim() === '') && !hasReadyFiles) {
+      logError(t('app.errorMessage.valueOfVarRequired'))
+      return false
+    }
+    return true
+  }
+
   const handleSend = () => {
     if (!valid() || (checkCanSend && !checkCanSend())) { return }
-    const hasPendingImageUploads = files.some(file => file.progress !== -1 && file.progress < 100)
-    const hasPendingAttachmentUploads = attachmentFiles.some(file => file.progress !== -1 && file.progress < 100)
-    if (hasPendingImageUploads || hasPendingAttachmentUploads) {
+    if (pendingUploads) {
       logError(t('app.errorMessage.waitForFileUpload'))
       return
     }
@@ -110,9 +114,14 @@ const Chat: FC<IChatProps> = ({
       url: fileItem.url,
       upload_file_id: fileItem.fileId,
     }))
-    const docAndOtherFiles: VisionFile[] = getProcessedFiles(attachmentFiles)
+    const docAndOtherFiles: VisionFile[] = readyAttachmentFiles.map(file => ({
+      ...file,
+      url: file.url || attachmentFiles.find(item => item.uploadedId === file.upload_file_id)?.base64Url || '',
+    }))
     const combinedFiles: VisionFile[] = [...imageFiles, ...docAndOtherFiles]
-    onSend(queryRef.current, combinedFiles)
+    // image-only send still needs a query for the chatflow router; use the canonical photo-intake prompt
+    const message = queryRef.current.trim() ? queryRef.current : '帮我识别这张图片里的食材，并录入库存'
+    onSend(message, combinedFiles)
     if (!files.find(item => item.type === TransferMethod.local_file && !item.fileId)) {
       if (files.length) { onClear() }
       if (!isResponding) {
@@ -235,7 +244,7 @@ const Chat: FC<IChatProps> = ({
                     </div>
                   }
                 >
-                  <div className={`${s.sendBtn} w-8 h-8 cursor-pointer rounded-md`} onClick={handleSend}></div>
+                  <div className={cn(s.sendBtn, 'w-8 h-8 rounded-md', canSend ? `${s.sendBtnReady} cursor-pointer` : 'cursor-not-allowed')} onClick={handleSend}></div>
                 </Tooltip>
               </div>
             </div>

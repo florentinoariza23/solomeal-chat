@@ -76,6 +76,7 @@ const Main: FC<IMainProps> = () => {
     setCurrConversationId,
     isNewConversation,
     currConversationInfo,
+    newConversationInfo,
     currInputs,
     newConversationInputs,
     resetNewConversationInputs,
@@ -102,7 +103,8 @@ const Main: FC<IMainProps> = () => {
 
   const conversationName = currConversationInfo?.name || t('app.chat.newChatDefaultName') as string
   const conversationIntroduction = currConversationInfo?.introduction || ''
-  const suggestedQuestions = currConversationInfo?.suggested_questions || []
+  // opening-statement chips come from app params; conversation info can be empty before/while a history rebuild
+  const suggestedQuestions = newConversationInfo?.suggested_questions || currConversationInfo?.suggested_questions || []
 
   const handleConversationSwitch = () => {
     if (!inited) { return }

@@ -80,6 +80,15 @@
   background-color: #526B50;
 }
 
+.sendBtnReady {
+  background-image: url(./icons/send-active.svg);
+  background-color: #526B50;
+}
+
+.sendBtnReady:hover {
+  background-color: #3E5340;
+}
+
 .textArea:focus+div .count {
   display: block;
 }

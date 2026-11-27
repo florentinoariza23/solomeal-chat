@@ -44,6 +44,7 @@ function useConversation() {
     resetNewConversationInputs,
     setCurrInputs,
     currConversationInfo,
+    newConversationInfo,
     setNewConversationInfo,
     setExistConversationInfo,
   }
